@@ -2,12 +2,12 @@
 $(document).ready(function () {
   var field = [[]],
     dist = [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1], [0, 0]],
-    dif = 5,
+    dif = 3,
     row = 20,
     col = 30,
     mine = 0,
     firstMove = true,
-  endGame = false;
+    endGame = false;
   function drawBoard() {
     var show, cell;
     console.log("boarddddddddddd");
@@ -63,9 +63,12 @@ $(document).ready(function () {
     e = parseInt($(this).css('top'));
     mark(e, s);
     return false;
+  });
 
-  }
-  );
+  $('.field').on('dblclick', '.cell', function () //Double click
+  {
+    console.log("Double click");
+  });
   // }); 
 
   function start() {
@@ -92,7 +95,9 @@ $(document).ready(function () {
 
   function select(e, s) {
     var sel,
+      countAround,
       change;
+
     e = e / row;
     s = s / col;
     // do {
@@ -141,7 +146,9 @@ $(document).ready(function () {
         }
       firstMove = false;
     }
+
     sel = field[e][s];
+    change = 10;
     console.log(e, s, "eeeeee ssssssssssssssssssss", sel);
     if (sel == 0) {
       change = 10;
@@ -151,9 +158,46 @@ $(document).ready(function () {
       change = sel + 10;
     // else if (sel == -1)
     //   change = 9;
-    else if (sel > 10)
+    else if (sel > 10) {
+      console.log("pressed number", sel);
       change = sel;
+      countAround = 0;
+      for (var d = 0; d < 8; d++) {
+        te = e + dist[d][0];
+        ts = s + dist[d][1];
+        if (goodPlace(te, ts)) {
+          console.log("========", te, ts, field[te][ts]);
+          if (field[te][ts] > 99 || field[te][ts] < -99)
+            countAround++;
+        }
+      }
+      console.log("========", countAround);
+      if (sel % 10 == countAround) {
+        console.log("========");
+        for (var d = 0; d < 8; d++) {
+          te = e + dist[d][0];
+          ts = s + dist[d][1];
+          if (goodPlace(te, ts)) {
+            if (field[te][ts] == 0) {
+              // change = 10;
+              testCoord(te, ts);
+            }
+
+            else if ((field[te][ts] > 99 || field[te][ts] < -99)) {
+              // change = sel;
+            }
+            else if (field[te][ts] != -1)
+              field[te][ts] = field[te][ts] % 10 + 10;
+            else if (field[te][ts] == -1)
+              endGame = true;
+          }
+        }
+      }
+      // else
+      //   endGame = true;
+    }
     else if (sel == -1) {
+      change = -1;
       endGame = true;
     }
     field[e][s] = change;
@@ -171,7 +215,7 @@ $(document).ready(function () {
   }
   function testCoord(e, s) {
     var te, ts;
-    for (var d = 0; d < 8; d++) {
+    for (var d = 0; d < 9; d++) {
       te = e + dist[d][0];
       ts = s + dist[d][1];
       console.log("test", te, ts);
