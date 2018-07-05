@@ -6,6 +6,7 @@ $(document).ready(function () {
     row = 20,
     col = 30,
     mine = 0,
+    e, s,
     firstMove = true,
     endGame = false;
   function drawBoard() {
@@ -20,13 +21,13 @@ $(document).ready(function () {
 
 
         if (cell >= 100 || cell <= -100)
-          show = '<div><i class="fas fa-flag">B</i></div>';
+          show = '<div><i class="fa fa-flag"></i></div>';
         else if (cell >= 10)
           show = "<div class='free'>" + (cell == 10 ? "" : cell % 10) + "</div>";
         else if (cell < 10 && cell >= -1) // != 0)
           show = "";
         if (endGame && cell == -1)
-          show = '<i class="fas fa-bomb"></i>';
+          show = '<i class="fa fa-bomb"></i>';
         // else if (cell == 0)
         //   show = "<div class='free'></div>";
 
@@ -39,7 +40,10 @@ $(document).ready(function () {
         // if (cell == 0)
         //   ;
 
-        fieldHtml += "<div class='cell' style='top:" + i * row + "px; left:" + j * col + "px;'>" + show + "</div>";
+        // fieldHtml += "<div class='cell' style='top:" + i * row + "px; left:" + j * col + "px;'>" + show + "</div>";
+        // fieldHtml += "<div class='cell' style='top:" + i * row + "px; left:" + j * col + "px;'>" + show + "</div>";
+        fieldHtml += "<div class='cell'>" + show + "</div>";
+
       }
     fieldHtml += "</div>";
     $(".field").html(fieldHtml);
@@ -50,22 +54,31 @@ $(document).ready(function () {
   });
 
   $('.field').on('click', '.cell', function () {
-    var e, s;
+    // var e, s;
     console.log("clicccccccccc");
-    s = parseInt($(this).css('left'));
-    e = parseInt($(this).css('top'));
+    // s = parseInt($(this).css('left'));
+    // e = parseInt($(this).css('top'));
+    index = $(this).index();
+    s = index % col;
+    console.log(index, e, s);
+    e = (index - s) / col;
     // select (e / 20, (s - (s % 30)) / 30, e, s);
+    console.log(index, e, s);
     select(e, s);
   });
 
   $('.field').on("contextmenu", ".cell", function () {
-    s = parseInt($(this).css('left'));
-    e = parseInt($(this).css('top'));
+    // s = parseInt($(this).css('left'));
+    // e = parseInt($(this).css('top'));
+    index = $(this).index();
+    s = index % col;
+    e = (index - s) / col;
+    console.log(index, e, s);
     mark(e, s);
     return false;
   });
 
-  $('.field').on('dblclick', '.cell', function () //Double click
+  $('.field').on('dblclick', '.board', function () //Double click
   {
     console.log("Double click");
   });
@@ -78,10 +91,10 @@ $(document).ready(function () {
     play();
 
   }
-  function mark(e, s) {
+  function mark() {
     console.log("mouse right", e, s);
-    e = e / row;
-    s = s / col;
+    // e = e / row;
+    // s = s / col;
     cell = field[e][s];
     if (cell < 10 && cell >= -1)
       cell *= 100;
@@ -93,14 +106,16 @@ $(document).ready(function () {
     drawBoard();
   }
 
-  function select(e, s) {
+  function select() {
     var sel,
       countAround,
       change;
 
-    e = e / row;
-    s = s / col;
+    // e = e / row;
+    // s = s / col;
     // do {
+    console.log("ssssssssssssssssssssssssssssss", e, s);
+
     if (firstMove) {
       for (var d = 0; d < 9; d++) {
         te = e + dist[d][0];
@@ -136,7 +151,7 @@ $(document).ready(function () {
               te = i + dist[d][0];
               ts = j + dist[d][1];
               // console.log("test", te, ts);
-              if (goodPlace(te, ts, row, col) && field[te][ts] == -1)
+              if (goodPlace(te, ts) && field[te][ts] == -1)
                 countAround++;
             }
             field[i][j] = countAround;
