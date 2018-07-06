@@ -2,17 +2,21 @@
 $(document).ready(function () {
   var field = [[]],
     dist = [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1], [0, 0]],
-    dif = 3,
-    row = 20,
-    col = 30,
-    mine = 0,
-    e, s,
-    firstMove = true,
-    endGame = false;
+    dif = 2, row = 20, col = 30, mines = 0, bomb, e, s, time = 0, sizeSel = 0, level = 0,
+    firstMove = true, endGame = false,
+    show, cell,
+    size = {
+      data: ["Small", "Medium", "Large"], select: 0
+    };
+  level = {
+    data: ["Easy", "Medium", "Hard"], select: 0
+  };
+  selectMenu(0);
   function drawBoard() {
-    var show, cell;
-    console.log("boarddddddddddd");
+    // mine = 0;
+    console.log("boarddddddddddd", mines);
     fieldHtml = "<div class='board'>";
+    bomb = 0;
     for (var i = 0; i < row; i++)
       for (var j = 0; j < col; j++) {
         cell = field[i][j];
@@ -20,49 +24,49 @@ $(document).ready(function () {
         // cell = "";
 
 
-        if (cell >= 100 || cell <= -100)
-          show = '<div><i class="fa fa-flag"></i></div>';
+        if (cell >= 100 || cell <= -100) {
+          bomb++;
+          // show = '<div><i class="fa fa-flag"></i></div>';
+          show = '<div><i class="fa fa-exclamation"></i></div>';
+        }
         else if (cell >= 10)
-          show = "<div class='free'>" + (cell == 10 ? "" : cell % 10) + "</div>";
+          show = "<div class='free'style='color:#" + (7 + parseInt(cell % 10)).toString(16) + "00;'>" + (cell == 10 ? "" : cell % 10) + "</div>";
         else if (cell < 10 && cell >= -1) // != 0)
           show = "";
         if (endGame && cell == -1)
           show = '<i class="fa fa-bomb"></i>';
         // else if (cell == 0)
         //   show = "<div class='free'></div>";
-
-
         // else if (sel >= 10)
         //   else if (cell < 10) // && cell >= -1 )
         //     cell = "";
-
         // }
         // if (cell == 0)
-        //   ;
-
         // fieldHtml += "<div class='cell' style='top:" + i * row + "px; left:" + j * col + "px;'>" + show + "</div>";
         // fieldHtml += "<div class='cell' style='top:" + i * row + "px; left:" + j * col + "px;'>" + show + "</div>";
         fieldHtml += "<div class='cell'>" + show + "</div>";
-
       }
     fieldHtml += "</div>";
+    // $(".size").html(selectMenu(size.select));
     $(".field").html(fieldHtml);
+    $(".bombs").html(mines - bomb);
+
+    // console.log("start start", bomb);
   }
+  $('.size').on('click', 'div', function () {
+    var size;
+    size = $(this).index();
+    console.log("change size", size);
+    selectMenu(size);
+  });
   $('.field').on('click', '.start', function () {
-    console.log("start start");
     start();
   });
 
   $('.field').on('click', '.cell', function () {
-    // var e, s;
-    console.log("clicccccccccc");
-    // s = parseInt($(this).css('left'));
-    // e = parseInt($(this).css('top'));
     index = $(this).index();
     s = index % col;
-    console.log(index, e, s);
     e = (index - s) / col;
-    // select (e / 20, (s - (s % 30)) / 30, e, s);
     console.log(index, e, s);
     select(e, s);
   });
@@ -80,17 +84,46 @@ $(document).ready(function () {
 
   $('.field').on('dblclick', '.board', function () //Double click
   {
+    to
     console.log("Double click");
   });
-  // }); 
+  function selectMenu(sel) {
+    var menuHtml = "",
+      selSize = -1, selLevel = -1;
+    if (sel < 3) {
+      // selSize = sel;
+      size.select = sel;
+    } else if (sel > 3) {
+      // selLevel = sel - 3;
+      level.select = sel - 4;
+    }
+    menuHtml += menuStr(size) + '<div class="smile"><i class="fa fa-smile"></i>:)</div>' + menuStr(level);
+
+
+    // console.log("select MENU", sel);
+    $(".size").html(menuHtml);
+    // return (menuHtml(size.data, sel));
+  }
+
+  function menuStr(bar) {
+    selHtml = "";
+    for (var i = 0; i < 3; i++) {
+      selHtml += "<div><button";
+      if (i == bar.select) {
+        // size.select = sel;
+        selHtml += " class='selected'";
+      }
+      selHtml += (">" + bar.data[i] + "</button></div>");
+    }
+    console.log(selHtml);
+    return selHtml;
+  }
 
   function start() {
-    console.log("start");
-    //    drawBoard(20,   30);
-
+    console.log("start"); //    drawBoard(20,   30);
     play();
-
   }
+
   function mark() {
     console.log("mouse right", e, s);
     // e = e / row;
@@ -100,23 +133,28 @@ $(document).ready(function () {
       cell *= 100;
     else if (cell >= 100 || cell <= -100)
       cell /= 100;
-
     field[e][s] = cell;
     console.log("markkkkkkkkkkk", cell);
     drawBoard();
   }
-
+  function timer() {
+    time++;
+    if (time < 1000) {
+      $(".timer").html(time);
+    }
+    else {
+      clearInterval(tm);
+    }
+    // return time;
+  }
   function select() {
     var sel,
       countAround,
       change;
-
     // e = e / row;
     // s = s / col;
-    // do {
-    console.log("ssssssssssssssssssssssssssssss", e, s);
-
     if (firstMove) {
+      tm = setInterval(timer, 1000);
       for (var d = 0; d < 9; d++) {
         te = e + dist[d][0];
         ts = s + dist[d][1];
@@ -125,18 +163,14 @@ $(document).ready(function () {
             field[e + dist[d][0]][s + dist[d][1]] = 0;
           }
         }
-
-        // } while (sel != 3); 
       }
       for (var i = 0; i < row; i++)
         for (var j = 0; j < col; j++) {
           if (field[i][j] != 0) {
             num = Math.floor(Math.random() * 10 + 1);
-            // console.log(num);
             if (num < dif) {
-              // cell = row*col + col;
               field[i][j] = -1;
-              mine++;
+              mines++;
             }
             else
               field[i][j] = 0;
@@ -144,20 +178,16 @@ $(document).ready(function () {
         }
       for (var i = 0; i < row; i++)
         for (var j = 0; j < col; j++) {
-          // console.log("test coord", i, j);
           if (field[i][j] > -1) {
             countAround = 0;
             for (var d = 0; d < 8; d++) {
               te = i + dist[d][0];
               ts = j + dist[d][1];
-              // console.log("test", te, ts);
               if (goodPlace(te, ts) && field[te][ts] == -1)
                 countAround++;
             }
             field[i][j] = countAround;
-            // console.log("around", countAround);
           }
-          // console.log(field);
         }
       firstMove = false;
     }
@@ -171,10 +201,7 @@ $(document).ready(function () {
     }
     else if (sel > 0 && sel < 10)
       change = sel + 10;
-    // else if (sel == -1)
-    //   change = 9;
     else if (sel > 10) {
-      console.log("pressed number", sel);
       change = sel;
       countAround = 0;
       for (var d = 0; d < 8; d++) {
@@ -186,9 +213,7 @@ $(document).ready(function () {
             countAround++;
         }
       }
-      console.log("========", countAround);
       if (sel % 10 == countAround) {
-        console.log("========");
         for (var d = 0; d < 8; d++) {
           te = e + dist[d][0];
           ts = s + dist[d][1];
@@ -197,7 +222,6 @@ $(document).ready(function () {
               // change = 10;
               testCoord(te, ts);
             }
-
             else if ((field[te][ts] > 99 || field[te][ts] < -99)) {
               // change = sel;
             }
@@ -208,8 +232,6 @@ $(document).ready(function () {
           }
         }
       }
-      // else
-      //   endGame = true;
     }
     else if (sel == -1) {
       change = -1;
@@ -218,15 +240,12 @@ $(document).ready(function () {
     field[e][s] = change;
     drawBoard();
   }
-  function play(e, s) {
-    var
-      te, ts, countAround,
-      num;
+  function play() {
+    var te, ts, countAround, num;
     for (var i = 0; i < row; i++)
       field[i] = (new Array(col)).fill(-1);
-    console.log("mmmmmmmm", mine);
+    console.log("mmmmmmmm", mines);
     drawBoard(row, col, field);
-    // drawBoard(row, col, field);
   }
   function testCoord(e, s) {
     var te, ts;
@@ -243,7 +262,6 @@ $(document).ready(function () {
         }
         else
           field[te][ts] = field[te][ts] % 10 + 10;
-      // console.log("field10000000000000",te, ts, field[te][ts]);
     }
   }
   function goodPlace(e, s) {
