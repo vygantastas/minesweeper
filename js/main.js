@@ -2,7 +2,7 @@
 $(document).ready(function () {
   var field = [[]],
     dist = [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1], [0, 0]],
-    dif = 2, row = 20, col = 30, mines = 0, bomb, e, s, time = 0, sizeSel = 0, level = 0,
+    dif = 2, row = 20, col = 30, mines = 0, bomb, e, s, time = 0, sizeSel = 0, level = 0, tm,
     firstMove = true, endGame = false,
     show, cell,
     size = {
@@ -59,9 +59,9 @@ $(document).ready(function () {
     console.log("change size", size);
     selectMenu(size);
   });
-  $('.field').on('click', '.start', function () {
-    start();
-  });
+  // $('.field').on('click', '.start', function () {
+  //   start();
+  // });
 
   $('.field').on('click', '.cell', function () {
     index = $(this).index();
@@ -88,16 +88,23 @@ $(document).ready(function () {
     console.log("Double click");
   });
   function selectMenu(sel) {
-    var menuHtml = "",
-      selSize = -1, selLevel = -1;
+    var menuHtml = "";
+    if (sel == 3) {
+      endGame = false;
+      firstMove = true;
+      mines = 0;
+      // clearInterval(tm);
+      clearTimeout(tm);
+      time = 0;
+      $('.timer').html("0");
+      play();
+    }
     if (sel < 3) {
-      // selSize = sel;
       size.select = sel;
     } else if (sel > 3) {
-      // selLevel = sel - 3;
       level.select = sel - 4;
     }
-    menuHtml += menuStr(size) + '<div class="smile"><i class="fa fa-smile"></i>:)</div>' + menuStr(level);
+    menuHtml = menuStr(size) + '<div class="smile"><i class="fa fa-smile"></i>:)</div>' + menuStr(level);
 
 
     // console.log("select MENU", sel);
@@ -113,16 +120,16 @@ $(document).ready(function () {
         // size.select = sel;
         selHtml += " class='selected'";
       }
-      selHtml += (">" + bar.data[i] + "</button></div>");
+      selHtml += ">" + bar.data[i] + "</button></div>";
     }
     console.log(selHtml);
     return selHtml;
   }
 
-  function start() {
-    console.log("start"); //    drawBoard(20,   30);
-    play();
-  }
+  // function start() {
+  //   console.log("start"); //    drawBoard(20,   30);
+  //   play();
+  // }
 
   function mark() {
     console.log("mouse right", e, s);
@@ -134,7 +141,6 @@ $(document).ready(function () {
     else if (cell >= 100 || cell <= -100)
       cell /= 100;
     field[e][s] = cell;
-    console.log("markkkkkkkkkkk", cell);
     drawBoard();
   }
   function timer() {
@@ -143,7 +149,8 @@ $(document).ready(function () {
       $(".timer").html(time);
     }
     else {
-      clearInterval(tm);
+      console.log("timer Stoooop", tm);
+      clearTimeout(tm);
     }
     // return time;
   }
@@ -154,7 +161,6 @@ $(document).ready(function () {
     // e = e / row;
     // s = s / col;
     if (firstMove) {
-      tm = setInterval(timer, 1000);
       for (var d = 0; d < 9; d++) {
         te = e + dist[d][0];
         ts = s + dist[d][1];
@@ -165,18 +171,18 @@ $(document).ready(function () {
         }
       }
       for (var i = 0; i < row; i++)
-        for (var j = 0; j < col; j++) {
-          if (field[i][j] != 0) {
-            num = Math.floor(Math.random() * 10 + 1);
-            if (num < dif) {
-              field[i][j] = -1;
+      for (var j = 0; j < col; j++) {
+        if (field[i][j] != 0) {
+          num = Math.floor(Math.random() * 10 + 1);
+          if (num < (level.select+2)) {
+            field[i][j] = -1;
               mines++;
             }
             else
-              field[i][j] = 0;
+            field[i][j] = 0;
           }
         }
-      for (var i = 0; i < row; i++)
+        for (var i = 0; i < row; i++)
         for (var j = 0; j < col; j++) {
           if (field[i][j] > -1) {
             countAround = 0;
@@ -184,17 +190,18 @@ $(document).ready(function () {
               te = i + dist[d][0];
               ts = j + dist[d][1];
               if (goodPlace(te, ts) && field[te][ts] == -1)
-                countAround++;
+              countAround++;
             }
             field[i][j] = countAround;
           }
         }
-      firstMove = false;
-    }
-
-    sel = field[e][s];
-    change = 10;
-    console.log(e, s, "eeeeee ssssssssssssssssssss", sel);
+        firstMove = false;
+        tm = setInterval(timer, 1000);
+      }
+      
+      sel = field[e][s];
+      change = 10;
+      console.log(e, s, "eeeeee ssssssssssssssssssss", sel);
     if (sel == 0) {
       change = 10;
       testCoord(e, s);
@@ -241,7 +248,7 @@ $(document).ready(function () {
     drawBoard();
   }
   function play() {
-    var te, ts, countAround, num;
+    // var te, ts, countAround, num;
     for (var i = 0; i < row; i++)
       field[i] = (new Array(col)).fill(-1);
     console.log("mmmmmmmm", mines);
