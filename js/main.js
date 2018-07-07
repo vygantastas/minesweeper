@@ -2,18 +2,16 @@
 $(document).ready(function () {
   var field = [[]],
     dist = [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1], [0, 0]],
-    dif = 2, row = 20, col = 30, mines = 0, bomb, e, s, time = 0, sizeSel = 0, level = 0, tm,
-    firstMove = true, endGame = false,
-    show, cell,
-    size = {
-      data: ["Small", "Medium", "Large"], select: 0
-    };
+    dif = 2, row = 20, col = 30, mines = 0, bomb, e, s, time = 0, sizeSel = 0, level = 0, tm, openCell,
+    firstMove = true, endGame = false, show, cell, happyGame = false, visible = true;
+  size = {
+    data: ["Small", "Medium", "Large"], select: 0
+  };
   level = {
     data: ["Easy", "Medium", "Hard"], select: 0
   };
   selectMenu(0);
   function drawBoard() {
-    // mine = 0;
     console.log("boarddddddddddd", mines);
     fieldHtml = "<div class='board'>";
     bomb = 0;
@@ -22,28 +20,40 @@ $(document).ready(function () {
         cell = field[i][j];
         // else if (cell % 10 == 0)
         // cell = "";
-
-
-        if (cell >= 100 || cell <= -100) {
-          bomb++;
-          // show = '<div><i class="fa fa-flag"></i></div>';
-          show = '<div><i class="fa fa-exclamation"></i></div>';
+        if (happyGame) {
+          console.log("HAPPPPPPPPPPY");
+          show = "<div class='free'>";
+          if (cell < 0)
+            show += '<i class="fa fa-bomb"></i>';
+          show += "</div>";
+          //   show = "";
+          // else
         }
-        else if (cell >= 10)
-          show = "<div class='free'style='color:#" + (7 + parseInt(cell % 10)).toString(16) + "00;'>" + (cell == 10 ? "" : cell % 10) + "</div>";
-        else if (cell < 10 && cell >= -1) // != 0)
-          show = "";
-        if (endGame && cell == -1)
-          show = '<i class="fa fa-bomb"></i>';
-        // else if (cell == 0)
-        //   show = "<div class='free'></div>";
-        // else if (sel >= 10)
-        //   else if (cell < 10) // && cell >= -1 )
-        //     cell = "";
-        // }
-        // if (cell == 0)
-        // fieldHtml += "<div class='cell' style='top:" + i * row + "px; left:" + j * col + "px;'>" + show + "</div>";
-        // fieldHtml += "<div class='cell' style='top:" + i * row + "px; left:" + j * col + "px;'>" + show + "</div>";
+        else {
+          if (cell >= 100 || cell <= -100) {
+            bomb++;
+            openCell++;
+            // show = '<div><i class="fa fa-flag"></i></div>';
+            show = '<div><i class="fa fa-exclamation"></i></div>';
+          }
+          else if (cell >= 10) {
+            show = "<div class='free' style='color:#" + (7 + parseInt(cell % 10)).toString(16) + "00;'>" + (cell == 10 ? "" : cell % 10) + "</div>";
+            openCell++;
+          }
+          else if (cell < 10 && cell >= -1) // != 0)
+            show = "";
+          if (endGame && cell == -1)
+            show = '<i class="fa fa-bomb"></i>';
+          // else if (cell == 0)
+          //   show = "<div class='free'></div>";
+          // else if (sel >= 10)
+          //   else if (cell < 10) // && cell >= -1 )
+          //     cell = "";
+          // }
+          // if (cell == 0)
+          // fieldHtml += "<div class='cell' style='top:" + i * row + "px; left:" + j * col + "px;'>" + show + "</div>";
+          // fieldHtml += "<div class='cell' style='top:" + i * row + "px; left:" + j * col + "px;'>" + show + "</div>";
+        }
         fieldHtml += "<div class='cell'>" + show + "</div>";
       }
     fieldHtml += "</div>";
@@ -51,8 +61,30 @@ $(document).ready(function () {
     $(".field").html(fieldHtml);
     $(".bombs").html(mines - bomb);
 
-    // console.log("start start", bomb);
+    console.log("OPEN CELL", bomb, openCell);
+    openCell = 0;
   }
+  $(".view img").click(function (event) {
+    if (event.target !== this)
+      return;
+    if (visible) {
+      clearInterval(tm);
+      // $(".view").css("z-index", "1");
+      $(".container").css("z-index", "-1");
+    }
+    else {
+      tm = setInterval(timer, 1000);
+      
+      // $(".view").css("z-index", "0");
+      $(".container").css("z-index", "1");
+      // $(".view img").css("z-index", "1");
+    }
+    visible = !visible;
+    console.log("background");
+
+    // if (!$(event.target).hasClass("header timer"))
+
+  });
   $('.size').on('click', 'div', function () {
     var size;
     size = $(this).index();
@@ -73,7 +105,6 @@ $(document).ready(function () {
 
   $('.field').on("contextmenu", ".cell", function () {
     // s = parseInt($(this).css('left'));
-    // e = parseInt($(this).css('top'));
     index = $(this).index();
     s = index % col;
     e = (index - s) / col;
@@ -93,6 +124,8 @@ $(document).ready(function () {
       endGame = false;
       firstMove = true;
       mines = 0;
+      happyGame = false;
+      // openCell = 0;
       // clearInterval(tm);
       clearTimeout(tm);
       time = 0;
@@ -104,7 +137,7 @@ $(document).ready(function () {
     } else if (sel > 3) {
       level.select = sel - 4;
     }
-    menuHtml = menuStr(size) + '<div class="smile"><i class="fa fa-smile"></i>:)</div>' + menuStr(level);
+    menuHtml = menuStr(size) + '<div class="smile"><i class="far fa-frown"></i><span>&#9786;</span></div>' + menuStr(level);
 
 
     // console.log("select MENU", sel);
@@ -133,8 +166,6 @@ $(document).ready(function () {
 
   function mark() {
     console.log("mouse right", e, s);
-    // e = e / row;
-    // s = s / col;
     cell = field[e][s];
     if (cell < 10 && cell >= -1)
       cell *= 100;
@@ -152,14 +183,9 @@ $(document).ready(function () {
       console.log("timer Stoooop", tm);
       clearTimeout(tm);
     }
-    // return time;
   }
   function select() {
-    var sel,
-      countAround,
-      change;
-    // e = e / row;
-    // s = s / col;
+    var sel, knownCell = 0, countAround, change;
     if (firstMove) {
       for (var d = 0; d < 9; d++) {
         te = e + dist[d][0];
@@ -171,18 +197,19 @@ $(document).ready(function () {
         }
       }
       for (var i = 0; i < row; i++)
-      for (var j = 0; j < col; j++) {
-        if (field[i][j] != 0) {
-          num = Math.floor(Math.random() * 10 + 1);
-          if (num < (level.select+2)) {
-            field[i][j] = -1;
+        for (var j = 0; j < col; j++) {
+          if (field[i][j] != 0) {
+            num = Math.floor(Math.random() * 10 + 1);
+            console.log("NUMMMMMMMMM", num);
+            if (num < (level.select + 2)) {       ////+2
+              field[i][j] = -1;
               mines++;
             }
             else
-            field[i][j] = 0;
+              field[i][j] = 0;
           }
         }
-        for (var i = 0; i < row; i++)
+      for (var i = 0; i < row; i++)
         for (var j = 0; j < col; j++) {
           if (field[i][j] > -1) {
             countAround = 0;
@@ -190,18 +217,18 @@ $(document).ready(function () {
               te = i + dist[d][0];
               ts = j + dist[d][1];
               if (goodPlace(te, ts) && field[te][ts] == -1)
-              countAround++;
+                countAround++;
             }
             field[i][j] = countAround;
           }
         }
-        firstMove = false;
-        tm = setInterval(timer, 1000);
-      }
-      
-      sel = field[e][s];
-      change = 10;
-      console.log(e, s, "eeeeee ssssssssssssssssssss", sel);
+      firstMove = false;
+      tm = setInterval(timer, 1000);
+    }
+
+    sel = field[e][s];
+    change = 10;
+    console.log(e, s, "eeeeee ssssssssssssssssssss", sel);
     if (sel == 0) {
       change = 10;
       testCoord(e, s);
@@ -243,8 +270,20 @@ $(document).ready(function () {
     else if (sel == -1) {
       change = -1;
       endGame = true;
+      clearTimeout(tm);
     }
     field[e][s] = change;
+    for (var i = 0; i < row; i++)
+      for (var j = 0; j < col; j++) {
+        if (field[i][j] >= 10 || field[i][j] < -99)
+          knownCell++;
+      }
+    console.log("knownNNNNNN", knownCell, bomb, knownCell + mines - bomb);
+    if ((knownCell + mines - bomb) >= (row * col)) {
+      console.log("HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHaPPPPPPPPPPPPPPPy");
+      happyGame = true;
+      clearTimeout(tm);
+    }
     drawBoard();
   }
   function play() {
