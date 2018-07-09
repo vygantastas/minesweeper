@@ -2,21 +2,23 @@
 $(document).ready(function () {
   var field = [[]],
     dist = [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1], [0, 0]],
-    emotions = ["😐", "🤔", "😮", "😬", "🙄", "😞", "😴"], EMOTION_INTERVAL = 3,
-    row = 20, col = 30, mines = 0, bomb, e, s, time = 0, level = 0, tm,
-    actionTime = 0,
-    firstMove = true, endGame = false, show, cell, happyGame = false, visible = true;
-  sBoard = { row: 20, col: 30, }
+    emotions = ["🙂", "😐", "🤔", "😮", "😬", "🙄", "😞", "😴"], EMOTION_INTERVAL = 3, CELL_SIZE = 20,
+    emotionsAfter = ["🤨", "🤨", "😉", "😛", "😎", "🤩", "😊", "😗"],
+    row = 20, col = 30, mines = 0, bomb, e, s, time = 0, level = 0, tm, inactivity = 0,
+    actionTime = 0, nowSize = 0, nowLevel = 0,
+    firstMove = true, endGame = false, show, cell, happyGame = false, visible = true, menuSelected = false;
+  sBoard = { row: 20, col: 30 }
   mBoard = { row: 30, col: 45 }
   lBoard = { row: 40, col: 60 }
   boardSize = { data: ["Small", "Medium", "Large"], size: [sBoard, mBoard, lBoard], select: 0 };
   level = { data: ["Easy", "Medium", "Hard"], select: 0 };
 
-  selectMenu(0);
+  // selectMenu(0);
+  play(0);
 
   function drawBoard() {
-    fieldHtml = "<div class='board'>";
     bomb = 0;
+    fieldHtml = "<div class='board'>";
     for (var i = 0; i < row; i++)
       for (var j = 0; j < col; j++) {
         cell = field[i][j];
@@ -64,14 +66,17 @@ $(document).ready(function () {
     }
     visible = !visible;
     console.log("backgroundDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDd");
+    console.log(($(".view").css("height")), "heighTTTTTTTTTTTTTTTTttt");
+
     // if (!$(event.target).hasClass("header timer"))
   });
 
   $('.size').on('click', 'div', function () {
-    var menuSelect;
-    menuSelect = $(this).index();
-    console.log("change size", menuSelect);
-    selectMenu(menuSelect);
+    var menuChoice;
+    menuSelected = true;
+    menuChoice = $(this).index();
+    console.log("change size", menuChoice);
+    selectMenu(menuChoice);
   });
 
   $('.field').on('click', '.cell', function () {
@@ -104,19 +109,28 @@ $(document).ready(function () {
       happyGame = false;
       clearTimeout(tm);
       time = 0;
-      $('.timer').html("0");
-      play (boardSize.select);
+      // if (menuSelected) {
+      nowSize = boardSize.select;
+      nowLevel = level.select;
+      // }
+      menuSelected = false;
+      // $('.timer').html ("0");
+      play(boardSize.select);
     }
     if (sel < 4 && sel > 0) {
       boardSize.select = sel - 1;
     } else if (sel > 4 && sel < 8) {
       level.select = sel - 5;
+    } else if (sel == 9) {
+      boardSize.select = nowSize;
+      level.select = nowLevel;
+      menuSelected = false;
     }
-    menuHtml = '<div class="timer">0</div>' + menuStr(boardSize) + '<div class="smile"><span>😐</span></div>' + menuStr(level) + '<div class="bombs">0</div>';
-    $(".size").html (menuHtml);
+    menuHtml = '<div class="timer">0</div>' + menuStr(boardSize) + '<div class="smile"><span>🙂</span></div>' + menuStr(level) + '<div class="bombs">0</div>';
+    $(".size").html(menuHtml);
   }
 
-  function menuStr (bar) {
+  function menuStr(bar) {
     selHtml = "";
     for (var i = 0; i < 3; i++) {
       selHtml += "<div class='choice";
@@ -128,6 +142,8 @@ $(document).ready(function () {
   }
 
   function mark() {
+    if (menuSelected)
+      selectMenu(9);
     console.log("mouse right", e, s);
     cell = field[e][s];
     if (cell < 10 && cell >= -1)
@@ -135,27 +151,56 @@ $(document).ready(function () {
     else if (cell >= 100 || cell <= -100)
       cell /= 100;
     field[e][s] = cell;
-    actionTime = timer ();
+    actionTime = timer();
     drawBoard();
   }
+
   function timer() {
-    var inactivity, emotion;
+    var emotion;
+    console.log("ttttttimer");
     time++;
     if (time < 10000)
       $(".timer").html(time);
     else
-      clearTimeout (tm);
-    inactivity = time - actionTime;
-    console.log("timer ", inactivity);
-    if (inactivity < EMOTION_INTERVAL * emotions.length)
-      emotion = emotions[Math.floor(inactivity / EMOTION_INTERVAL)];
-    else
-      emotion = emotions[emotions.length - 1];
-    $(".smile").html (emotion);
+      clearTimeout(tm);
+    console.log("timerrrrrrrrrrrrrrrrr ", inactivity, time, actionTime);
+    if ((time - actionTime) == 1) {
+      emotion = emotionPic(emotionsAfter);
+      // emotion = emotionsAfter[Math.floor(inactivity / EMOTION_INTERVAL)];
+      // console.log(emotionsAfter[Math.floor(inactivity / EMOTION_INTERVAL)], Math.floor(inactivity / EMOTION_INTERVAL));
+    } else {
+      inactivity = time - actionTime;
+      console.log("timer ", inactivity);
+      if (inactivity % EMOTION_INTERVAL == 0)
+        emotion = emotionPic(emotions);
+      // if (inactivity < EMOTION_INTERVAL * emotions.length) {
+      //   if (inactivity % EMOTION_INTERVAL == 0)
+      //     emotion = emotions[((inactivity) / EMOTION_INTERVAL)];
+      // }
+      // else
+      //   emotion = emotions[emotions.length - 1];
+    }
+    $(".smile").html(emotion);
     return (time);
+
+    function emotionPic(emotionList) {
+      console.log(emotionList, inactivity);
+      if (inactivity < EMOTION_INTERVAL * emotionList.length) {
+        // if (inactivity % EMOTION_INTERVAL == 0)
+        emotion = emotionList[Math.floor(inactivity / EMOTION_INTERVAL)];
+      }
+      else
+        emotion = emotionList[emotionList.length - 1];
+      console.log(emotion, "EMO");
+      return (emotion);
+    }
+
   }
   function select() {
     var sel, knownCell = 0, countAround, change;
+    actionTime = timer();
+    if (menuSelected)
+      selectMenu(9);
     if (firstMove) {
       for (var d = 0; d < 9; d++) {
         te = e + dist[d][0];
@@ -233,7 +278,6 @@ $(document).ready(function () {
         }
       }
     }
-    actionTime = timer();
     if (sel == -1 || endGame) {
       change = -1;
       endGame = true;
@@ -251,19 +295,26 @@ $(document).ready(function () {
     }
     drawBoard();
   }
+
   function stopTime(emotion) {
     console.log("stop Time", emotion);
     clearTimeout(tm);
     $(".smile").html(emotion);
   }
 
-  function play (boardSel) {
+  function play(boardSel) {
     row = boardSize.size[boardSel].row;
     col = boardSize.size[boardSel].col;
+    viewHight = parseInt($(".view").css("height"));
+    if (viewHight > row * CELL_SIZE + 50)
+      viewHight = viewHight + 45 - (viewHight - row * CELL_SIZE) / 2;
     for (var i = 0; i < row; i++)
       field[i] = (new Array(col)).fill(-1);
-    $(".container").css("width", col * 20 + 6);
-    $(".container").css("height", row * 20 + 6);
+    $(".container").css("width", col * CELL_SIZE + 6);
+    $(".container").css("height", row * CELL_SIZE + 6);
+    console.log(($(".view").css("height")), "heighTTTTTTTTTTTTTTTTttt");
+    $(".container").css("margin-top", - viewHight); //-row * 20 - (viewHight - ( row * 20) / 1 ) );
+    selectMenu(0);
     drawBoard();
   }
 
