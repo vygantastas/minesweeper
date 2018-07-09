@@ -48,7 +48,7 @@ $(document).ready(function () {
     $(".bombs").html(mines - bomb);
   }
 
-  $(".view img").click(function (event) {
+  $(".view").click(function (event) {
     console.log("vieWWWWWWWWWWWWWW", event, "this", this);
     if (event.target !== this)
       return;
@@ -146,8 +146,12 @@ $(document).ready(function () {
       selectMenu(9);
     console.log("mouse right", e, s);
     cell = field[e][s];
-    if (cell < 10 && cell >= -1)
+    if (cell == 0)
+      cell = 1000;
+    else if (cell < 10 && cell >= -1)
       cell *= 100;
+    else if (cell >= 1000)
+      cell = 0;
     else if (cell >= 100 || cell <= -100)
       cell /= 100;
     field[e][s] = cell;
@@ -317,6 +321,18 @@ $(document).ready(function () {
     selectMenu(0);
     drawBoard();
   }
+  // function delImageDiv() {
+  //   // var xhr = new XMLHttpRequest();
+  //   // xhr.open('HEAD', "../img/house.jpg", false);
+  //   // xhr.send();
+
+  //   // var fs = require("fs");
+  //   // if (fs.exists("../img/house.jpg"))
+  //   // console.log("file exist");
+  //   //   else
+  //   console.log("file NOT exist");
+  //   $(".view").html("");
+  // }
 
   function testCoord(e, s) {
     var te, ts;

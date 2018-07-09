@@ -5,16 +5,23 @@
       /* background-color: #bbb; */
       
 }
+body {
+    margin: 0;
+}
 .monitor {
     position: absolute;
+    height: 100%; 
+    width: 100%; 
 }
 .view {
-    /* width: 100%;
-    height: 100%; */
-    /* background-image: url("../img/house.jpg"); */
+    height: 100%; 
+     width: 100%; 
+    background-color: #bbb;
+    background-image: url("../img/background.jpg");
+    background-size: contein;
     position: relative;
     /* margin-top: -500px; */
-    margin-left: 10px;
+    /* margin-left: 10px; */
 }
 .view img {
     width: 100%;
